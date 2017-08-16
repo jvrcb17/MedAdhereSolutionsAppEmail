@@ -19,16 +19,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.CalendarView.OnDateChangeListener;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -70,87 +68,65 @@ public class MedicationActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        Button currentDateButton = (Button)findViewById(R.id.currDateButton);
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            currentDateButton.setVisibility(View.INVISIBLE);
+        TextView meds = (TextView) findViewById(R.id.meds);
+        String userMeds = "";
+        ArrayList<String> medication = ((MyApplication) this.getApplication()).getMeds();
+        ArrayList<String> frequency = ((MyApplication) this.getApplication()).getFreqList();
+        for (int i = 0; i < medication.size(); i++) {
+            userMeds += medication.get(i) + ": " + frequency.get(i) + "\n\r";
         }
-        else{
+        meds.setText(userMeds);
+        meds.setTextSize(18);
+
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M) {
+            LinearLayout ll = (LinearLayout) findViewById(R.id.NFCLayout);
+            Button currentDateButton = new Button(this);
             currentDateButton.setVisibility(View.VISIBLE);
+            currentDateButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    String data = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+
+                    String currDate = data;
+                    curYear = Integer.parseInt(currDate.substring(0, currDate.indexOf("-")));
+                    curMonth = Integer.parseInt(currDate.substring(currDate.indexOf("-") + 1, currDate.lastIndexOf("-")));
+                    curDay = Integer.parseInt(currDate.substring(currDate.lastIndexOf("-") + 1, currDate.length()));
+                    Intent i = new Intent(ctx, MedicationLogActivity.class);
+                    //old.set(GregorianCalendar.MONTH, date.getMonth()-1);
+                    Log.e("Current Date", data);
+                    i.putExtra("date", data);//Log.e("nrp",String.format("%d-%d", date.getMonth(), date.getDay()));
+                    startActivity(i);
+                }
+            });
+            ll.addView(currentDateButton);
         }
-
-        currentDateButton.setOnClickListener(new View.OnClickListener() {
-                                      @Override
-                                      public void onClick(View view) {
-                                          String data = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-
-                                          String currDate = data;
-                                          curYear = Integer.parseInt(currDate.substring(0, currDate.indexOf("-")));
-                                          curMonth = Integer.parseInt(currDate.substring(currDate.indexOf("-") + 1, currDate.lastIndexOf("-")));
-                                          curDay = Integer.parseInt(currDate.substring(currDate.lastIndexOf("-") + 1, currDate.length()));
-                                          Intent i = new Intent(ctx, com.solutions.medadhere.medadheresolutionsapp.MedicationLogActivity.class);
-                                          //old.set(GregorianCalendar.MONTH, date.getMonth()-1);
-                                          Log.e("Current Date",data);
-                                          i.putExtra("date", data);//Log.e("nrp",String.format("%d-%d", date.getMonth(), date.getDay()));
-                                          startActivity(i);
-                                      }
-                                  });
-
-
-
         initializeCalendar();
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        if(nfcAdapter == null){
+        if (nfcAdapter == null) {
             Toast.makeText(this,
                     "NFC NOT supported on this devices!",
                     Toast.LENGTH_LONG).show();
-        }else if(nfcAdapter.isEnabled()){
+        } else if (nfcAdapter.isEnabled()) {
             Toast.makeText(this,
                     "NFC supported!",
                     Toast.LENGTH_LONG).show();
-            Button btnTag = (Button)findViewById(R.id.btnTag);
+
+            Button btnTag = new Button(this);
+            LinearLayout nfcLayout = (LinearLayout) findViewById(R.id.NFCLayout);
+            btnTag.setText("NFC Available");
             btnTag.setVisibility(View.VISIBLE);
             btnTag.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent i = new Intent(MedicationActivity.this, com.solutions.medadhere.medadheresolutionsapp.nfcTag.class);
+                    Intent i = new Intent(MedicationActivity.this, nfcTag.class);
                     startActivity(i);
-                    /*
-                    DisplayMetrics dm = new DisplayMetrics();
-                    getWindowManager().getDefaultDisplay().getMetrics(dm);
-                    int width = dm.widthPixels;
-                    int height = dm.heightPixels;
-
-                    getWindow().setLayout((int)(width*.8),(int)(height*.55));
-
-                    WindowManager.LayoutParams p = new WindowManager.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                    Tag tag = i.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-
-                    String tagInfo = tag.toString() + "\n";
-
-                    tagInfo += "\nTag Id: \n";
-                    byte[] tagId = tag.getId();
-                    tagInfo += "length = " + tagId.length +"\n";
-                    for(int i=0; i<tagId.length; i++){
-                        tagInfo += Integer.toHexString(tagId[i] & 0xFF) + " ";
-                    }
-                    tagInfo += "\n";
-
-                    String[] techList = tag.getTechList();
-                    tagInfo += "\nTech List\n";
-                    tagInfo += "length = " + techList.length +"\n";
-                    for(int i=0; i<techList.length; i++){
-                        tagInfo += techList[i] + "\n ";
-                    }
-
-                    //textViewInfo.setText(tagInfo);
-                    */
                 }
 
             });
-        }
-        else if(!nfcAdapter.isEnabled()){ //Your device doesn't support NFC
+            nfcLayout.addView(btnTag);
+        } else if (!nfcAdapter.isEnabled()) { //Your device doesn't support NFC
             Toast.makeText(this,
                     "NFC NOT Enabled!",
                     Toast.LENGTH_LONG).show();
@@ -170,27 +146,13 @@ public class MedicationActivity extends AppCompatActivity
 
                 String currentDate;
 
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                    Calendar cal = Calendar.getInstance();
-                    System.out.println(dateFormat.format(cal.getTime()));
-                    currentDate = dateFormat.format(cal.getTime());
-                    String currDate = currentDate;
-                    curYear = Integer.parseInt(currDate.substring(0, currDate.indexOf("-")));
-                    curMonth = Integer.parseInt(currDate.substring(currDate.indexOf("-") + 1, currDate.lastIndexOf("-")));
-                    curDay = Integer.parseInt(currDate.substring(currDate.lastIndexOf("-") + 1, currDate.length()));
-
-                    String data = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-
-               }
-                else{
                     String data = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 
                     String currDate = data;
                     curYear = Integer.parseInt(currDate.substring(0, currDate.indexOf("-")));
                     curMonth = Integer.parseInt(currDate.substring(currDate.indexOf("-") + 1, currDate.lastIndexOf("-")));
                     curDay = Integer.parseInt(currDate.substring(currDate.lastIndexOf("-") + 1, currDate.length()));
-                }
+
 
 
                 Date current = new Date(curYear,curMonth,curDay);// some Dat
@@ -204,9 +166,11 @@ public class MedicationActivity extends AppCompatActivity
                 String d;
                 if (month+1<10) {
                     mon = "0" + Integer.toString(month+1);
+                    Log.e("Less Than","10: "+mon);
                 }else
                 {
                     mon = Integer.toString(month+1);
+                    Log.e("Greater Than","10: " +mon);
                 }
 
                 if (day<10) {
@@ -217,15 +181,23 @@ public class MedicationActivity extends AppCompatActivity
                 }
                 int daysSince = one-two;
 
-                if (daysSince>=0) {
-                    Intent i = new Intent(ctx, com.solutions.medadhere.medadheresolutionsapp.MedicationLogActivity.class);
+                if (daysSince==0) {
+                    Intent i = new Intent(ctx, MedicationLogActivity.class);
                     //old.set(GregorianCalendar.MONTH, date.getMonth()-1);
                     i.putExtra("date", Integer.toString(year)+"-"+mon+"-"+d);//Log.e("nrp",String.format("%d-%d", date.getMonth(), date.getDay()));
                     startActivity(i);
                     //Snackbar.make(view, String.format("%d-%d", date.getMonth(), date.getDay()), Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 }
+                else if(daysSince>0){
+                    Intent i = new Intent(ctx, MedicationLogReadActivity.class);
+                    //old.set(GregorianCalendar.MONTH, date.getMonth()-1);
+                    i.putExtra("date", Integer.toString(year)+"-"+mon+"-"+d);//Log.e("nrp",String.format("%d-%d", date.getMonth(), date.getDay()));
+                    startActivity(i);
+                    //Snackbar.make(view, String.format("%d-%d", date.getMonth(), date.getDay()), Snackbar.LENGTH_LONG).setAction("Action", null).show();
+
+                }
                 else{
-                    Snackbar.make(view,"Please only edit the current or past days.",Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                    Snackbar.make(view,"Please only edit the current day.",Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 }
 
             }
@@ -275,24 +247,6 @@ public class MedicationActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        String UID = ((MyApplication) this.getApplication()).getUID();
-
-        mDatabase.child("app").child("users").child(UID).child("pharmanumber").addValueEventListener(
-                new ValueEventListener() {
-
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String phonenumber = dataSnapshot.getValue().toString();
-                        //Log.e("Phone",phonenumber);
-                        ((MyApplication) MedicationActivity.this.getApplication()).setPharmaPhone(phonenumber);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-                });
         String tel = ((MyApplication) this.getApplication()).getPharmaPhone();
 
         // Handle navigation view item clicks here.
@@ -303,7 +257,7 @@ public class MedicationActivity extends AppCompatActivity
             finish();
         }
         else if (id == R.id.nav_bloodpressure) {
-            Intent i = new Intent(this, BloodPressureActivity.class);
+            Intent i = new Intent(this, BPCalendarActivity.class);
             startActivity(i);
             finish();
         }else if(id == R.id.nav_weight){

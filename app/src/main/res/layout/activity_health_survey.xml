@@ -31,14 +31,14 @@
             android:fadeScrollbars="false"
             android:scrollX="0dp">
 
-                <LinearLayout
-                    android:id="@+id/lv"
-                    android:gravity="top"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal" >
+            <LinearLayout
+                android:id="@+id/lv"
+                android:gravity="top"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" >
 
-                </LinearLayout>
+            </LinearLayout>
 
 
         </HorizontalScrollView>
@@ -55,100 +55,110 @@
             android:layout_height="wrap_content"
             android:textAlignment="center"/>
 
-        <Space
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:layout_gravity="center_horizontal" />
-
-        <RadioButton
-            android:visibility="invisible"
-            android:id="@+id/opt1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Option 1"
-            android:textSize="18dp"
-            />
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="10dp"
-            android:layout_gravity="center_horizontal" />
-
-        <RadioButton
-            android:visibility="invisible"
-            android:id="@+id/opt2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Option 2"
-            android:textSize="18dp"
-            />
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="10dp"
-            android:layout_gravity="center_horizontal" />
-
-        <RadioButton
-            android:visibility="invisible"
-            android:id="@+id/opt3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Option 3"
-            android:textSize="18dp"
-            />
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="10dp"
-            android:layout_gravity="center_horizontal" />
-        <RadioButton
-            android:visibility="invisible"
-            android:id="@+id/opt4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Option 4"
-            android:textSize="18dp"
-            />
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="20dp"
-            android:layout_gravity="center_horizontal" />
-
-
-
+            android:layout_height="match_parent"
+            android:fadeScrollbars="false">
             <LinearLayout
-                android:id="@+id/lv_bottom"
-                android:gravity="bottom|center"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal" >
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center_horizontal" />
 
-
-        <Button
-            android:layout_alignParentBottom="true"
-            android:visibility="invisible"
-            android:id="@+id/prevButton"
-            android:text="Prev"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            />
-                <Button
+                <RadioButton
                     android:visibility="invisible"
-                    android:id="@+id/submitButton"
-                    android:text="Submit"
+                    android:id="@+id/opt1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="Option 1"
+                    android:textSize="18dp"
                     />
-                <Button
-                    android:layout_alignParentBottom="true"
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="10dp"
+                    android:layout_gravity="center_horizontal" />
+
+                <RadioButton
                     android:visibility="invisible"
-                    android:id="@+id/nextButton"
-                    android:text="Next"
+                    android:id="@+id/opt2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="Option 2"
+                    android:textSize="18dp"
                     />
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="10dp"
+                    android:layout_gravity="center_horizontal" />
+
+                <RadioButton
+                    android:visibility="invisible"
+                    android:id="@+id/opt3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Option 3"
+                    android:textSize="18dp"
+                    />
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="10dp"
+                    android:layout_gravity="center_horizontal" />
+                <RadioButton
+                    android:visibility="invisible"
+                    android:id="@+id/opt4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Option 4"
+                    android:textSize="18dp"
+                    />
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center_horizontal" />
+
+
+
+                <LinearLayout
+                    android:id="@+id/lv_bottom"
+                    android:gravity="bottom|center"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" >
+
+
+                    <Button
+                        android:layout_alignParentBottom="true"
+                        android:visibility="invisible"
+                        android:id="@+id/prevButton"
+                        android:text="Prev"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        />
+                    <Button
+                        android:visibility="invisible"
+                        android:id="@+id/submitButton"
+                        android:text="Submit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        />
+                    <Button
+                        android:layout_alignParentBottom="true"
+                        android:visibility="invisible"
+                        android:id="@+id/nextButton"
+                        android:text="Next"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        />
+
+                </LinearLayout>
             </LinearLayout>
 
 
-
+        </ScrollView>
 
     </LinearLayout>
 

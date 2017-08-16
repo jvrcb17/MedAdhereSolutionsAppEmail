@@ -13,11 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 /**
  * Created by lindsayherron on 9/29/16.
@@ -74,24 +70,7 @@ public class StudyContactsActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        String UID = ((MyApplication) this.getApplication()).getUID();
-
-        mDatabase.child("app").child("users").child(UID).child("pharmanumber").addValueEventListener(
-                new ValueEventListener() {
-
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String phonenumber = dataSnapshot.getValue().toString();
-                        ((MyApplication) StudyContactsActivity.this.getApplication()).setPharmaPhone(phonenumber);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-                });
+        // Handle navigation view item clicks here
         String tel = ((MyApplication) this.getApplication()).getPharmaPhone();
 
         int id = item.getItemId();
@@ -101,7 +80,7 @@ public class StudyContactsActivity extends AppCompatActivity
             finish();
         }
         else if (id == R.id.nav_bloodpressure) {
-            Intent i = new Intent(this, BloodPressureActivity.class);
+            Intent i = new Intent(this, BPCalendarActivity.class);
             startActivity(i);
             finish();
         }  else if (id == R.id.nav_medication) {

@@ -17,18 +17,17 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
+import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 //import android.icu.text.DateFormat;
@@ -39,6 +38,7 @@ public class SurveySelectionActivity extends AppCompatActivity
     private DatabaseReference mDatabase;
     Context ctx;
     public static final String HSURVEY_FILENAME = "hsurvey_file";
+    public static final String LSURVEY_FILENAME = "lsurvey_file";
     public static final String PREFS_NAME = "MyPrefsFile";
     int surYear;
     int surMonth;
@@ -63,7 +63,29 @@ public class SurveySelectionActivity extends AppCompatActivity
         toggle.syncState();
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        FileInputStream finLife = null;
+        FileInputStream finHealth = null;
+
+           if (((MyApplication) SurveySelectionActivity.this.getApplication()).getLifestyleSurveyAnswers()[0]!=-1) {
+               ((TextView) findViewById(R.id.life)).setText("Lifestyle Survey: " + ((MyApplication) SurveySelectionActivity.this.getApplication()).getLifestyleDate());
+           }
+            else{
+               ((TextView) findViewById(R.id.life)).setText("Lifestyle Survey: Not Taken Yet");
+
+           }
+
+        if (((MyApplication) SurveySelectionActivity.this.getApplication()).getLiteracySurveyAnswers()[0]!=-1) {
+            ((TextView) findViewById(R.id.health)).setText("Literacy Survey: " + ((MyApplication) SurveySelectionActivity.this.getApplication()).getLiteracyDate());
+        }
+        else{
+            ((TextView) findViewById(R.id.health)).setText("Literacy Survey: Not Taken Yet");
+        }
+
+
+
         initializeSurveyButtons();
+
     }
 
     public void initializeSurveyButtons() {
@@ -73,8 +95,11 @@ public class SurveySelectionActivity extends AppCompatActivity
         final String currDate = dateFormat.format(cal.getTime());
         Log.e("currentDateSurvSelect",currDate);
 
+        LinearLayout surveys = (LinearLayout) findViewById(R.id.surveys);
+
         Button lifestyleSurvey = (Button) findViewById(R.id.lifestylesurveybutton);
         Button healthLiteracySurvey = (Button) findViewById(R.id.healthliteracysurveybutton);
+        Button appSatisfactionSurvey = (Button) findViewById(R.id.appsatisfactionbutton);
 
         lifestyleSurvey.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,41 +121,19 @@ public class SurveySelectionActivity extends AppCompatActivity
 
                 alert.setNegativeButton("Feedback", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, int whichButton) {
-                        mDatabase = FirebaseDatabase.getInstance().getReference();
-                        String UID = ((MyApplication) SurveySelectionActivity.this.getApplication()).getUID();
-                        mDatabase.child("app").child("users").child(UID).child("lifestylesurveyanswersRW").addValueEventListener(
-                                new ValueEventListener() {
-                                    @Override
 
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-                                        Iterator<DataSnapshot> it = dataSnapshot.getChildren().iterator();
-                                        DataSnapshot dates = null;
-                                        //int i=0;
-                                        while(it.hasNext()){
-                                            if(it.hasNext()){
-                                                dates =it.next();
-                                                //String nextDate = dates.getKey().toString();
-                                                //Log.e("SurveySelection1",nextDate);
-                                                //i++;
-                                            }
-                                        }
-                                        if(dates!=null) {
-                                            String lastDate = dates.getKey().toString();
-                                            Log.e("SurveySelection2",lastDate);
-                                            Intent i = new Intent(SurveySelectionActivity.this, LifestyleFeedbackActivity.class);
-                                            i.putExtra("date", lastDate); //number corresponds to survey
-                                            startActivity(i);
-                                        }
-                                        else{
-                                            Toast.makeText(ctx, "No Previous FeedBack", Toast.LENGTH_LONG).show();
-                                            dialog.cancel();
-                                        }
-                                    }
-                                    @Override
-                                    public void onCancelled(DatabaseError databaseError) {
-                                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                                    }
-                                });
+                        Log.e("Date Life",((MyApplication) SurveySelectionActivity.this.getApplication()).getLifestyleDate());
+
+                        if (((MyApplication) SurveySelectionActivity.this.getApplication()).getLifestyleSurveyAnswers()[0]!=-1) {
+                            String lastDate = ((MyApplication) SurveySelectionActivity.this.getApplication()).getLifestyleDate();
+                            Log.e("Life Date", lastDate);
+                            Intent i = new Intent(SurveySelectionActivity.this, LifestyleFeedbackActivity.class);
+                            i.putExtra("date", lastDate); //number corresponds to survey
+                            startActivity(i);
+                        } else {
+                            Toast.makeText(ctx, "No Previous FeedBack", Toast.LENGTH_LONG).show();
+                            dialog.cancel();
+                        }
 
                     }
                 });
@@ -147,13 +150,40 @@ public class SurveySelectionActivity extends AppCompatActivity
         healthLiteracySurvey.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 Intent i = new Intent(SurveySelectionActivity.this, HealthLitParagraphActivity.class);
                 startActivity(i);
-
-
             }
         });
+
+        appSatisfactionSurvey.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(SurveySelectionActivity.this, AppSatisfactionSurveyActivity.class);
+                startActivity(i);
+            }
+        });
+
+        final ArrayList<String> medication = ((MyApplication) this.getApplication()).getMeds();
+        for (int i = 0; i < medication.size(); i++) {
+            final String medName = medication.get(i);
+            Button med = new Button(this);
+            med.setText("Medication Adherence: "+medName);
+            med.setBackgroundResource(R.drawable.button_bg);
+            med.setId(i);
+            med.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(SurveySelectionActivity.this, MedicationAdherenceSurvey.class);
+                    intent.putExtra("medName",medName);
+                    startActivity(intent);
+                }
+            });
+
+            surveys.addView(med);
+
+        }
+
+
     }
 
 
@@ -177,26 +207,7 @@ public class SurveySelectionActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        String UID = ((MyApplication) this.getApplication()).getUID();
-
-        mDatabase.child("app").child("users").child(UID).child("pharmanumber").addValueEventListener(
-                new ValueEventListener() {
-
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String phonenumber = dataSnapshot.getValue().toString();
-                        //Log.e("Phone",phonenumber);
-                        ((MyApplication) SurveySelectionActivity.this.getApplication()).setPharmaPhone(phonenumber);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-                });
         String tel = ((MyApplication) this.getApplication()).getPharmaPhone();
 
         int id = item.getItemId();
@@ -206,7 +217,7 @@ public class SurveySelectionActivity extends AppCompatActivity
             finish();
         }
         else if (id == R.id.nav_bloodpressure) {
-            Intent i = new Intent(this, BloodPressureActivity.class);
+            Intent i = new Intent(this, BPCalendarActivity.class);
             startActivity(i);
             finish();
         }else if(id == R.id.nav_weight){

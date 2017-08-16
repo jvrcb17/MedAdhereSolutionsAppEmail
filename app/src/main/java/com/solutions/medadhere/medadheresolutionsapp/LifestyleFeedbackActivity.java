@@ -11,11 +11,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -28,9 +24,6 @@ public class LifestyleFeedbackActivity extends AppCompatActivity {
     Context ctx;
     public static final String LSURVEY_FILENAME = "lsurvey_file";
     public static final String PREFS_NAME = "MyPrefsFile";
-    ArrayList<String> responsePosArray = new ArrayList<>();
-    ArrayList<String> responseNegArray = new ArrayList<>();
-    ArrayList<String> responseArray = new ArrayList<>();
     ArrayAdapter<String> adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,13 +37,17 @@ public class LifestyleFeedbackActivity extends AppCompatActivity {
         final String[] posArray = getResources().getStringArray(R.array.LifestylePositiveMessagesArray);
         final String[] negArray = getResources().getStringArray(R.array.LifestyleNegativeMessagesArray);
         final int[] surveyResponse = new int[8];
-        final int[] correctChoice = {4,1,2,2,1,2,2,4};
-        final int[] wrongChoice = {0,0,1,1,0,1,1,0};
+        final int[] correctChoice = {4, 1, 2, 2, 1, 2, 2, 4};
+        final int[] wrongChoice = {0, 0, 1, 1, 0, 1, 1, 0};
+        ArrayList<String> responsePosArray = new ArrayList<>();
+        ArrayList<String> responseNegArray = new ArrayList<>();
+        ArrayList<String> responseArray = new ArrayList<>();
+
 
         Intent i = getIntent();
         String surDate = i.getStringExtra("date");
 
-        Log.e("DATE",surDate);
+        Log.e("DATE", surDate);
 
         deleteFile(LSURVEY_FILENAME);
         try {
@@ -65,71 +62,51 @@ public class LifestyleFeedbackActivity extends AppCompatActivity {
 
         //Log.e("Feedback surDate",surDate);
 
+        for (int ind = 0; ind < ((MyApplication) this.getApplication()).getLifestyleSurveyAnswers().length; ind++) {
+            surveyResponse[ind] = ((MyApplication) this.getApplication()).getLifestyleSurveyAnswers()[ind];
+        }
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        String UID = ((MyApplication) LifestyleFeedbackActivity.this.getApplication()).getUID();
-        mDatabase.child("app").child("users").child(UID).child("lifestylesurveyanswersRW").child(surDate).addValueEventListener(
-                new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String response = dataSnapshot.getValue().toString();
-                        ArrayList<String> responses = new ArrayList<String>(Arrays.asList(response.split(",")));
-                        for (int i=0;i<responses.size();i++) {
-                            if(i==responses.size()-1) {
-                                surveyResponse[i] =  Integer.parseInt(responses.get(i).substring(1, (responses.get(i)).length()-1));
-                            }
-                            else {
-                                surveyResponse[i] = Integer.parseInt(responses.get(i).substring(1, (responses.get(i)).length()));
-                            }
-                        }
-
-                        //Log.e("eee", Arrays.toString(surveyResponse));
-
-                        for(int ind=0; ind<surveyResponse.length;ind++){
-                            if (surveyResponse[ind]==correctChoice[ind]){
-                                responsePosArray.add(Integer.toString(ind+1)+". "+posArray[ind]);
-                            }
-                            else if (wrongChoice[ind]==0 | surveyResponse[ind]==wrongChoice[ind]){
-                                responseNegArray.add(Integer.toString(ind+1)+". "+negArray[ind]);
-                            }
-                        }
-
-                        if( !responsePosArray.isEmpty()) {
-                            responseArray.add("Positive Feedback");
-                            responseArray.addAll(responsePosArray);
-                        }
-                        if( !responsePosArray.isEmpty()&!responseNegArray.isEmpty()) {
-                            responseArray.add(" ");
-                        }
-                        if(!responseNegArray.isEmpty()) {
-                            responseArray.add("Educational Feedback");
-                            responseArray.addAll(responseNegArray);
-                        }
-
-                        final ListView lv = (ListView) findViewById(R.id.LifestyleFeedbackView);
-                        adapter = new ArrayAdapter<String>(LifestyleFeedbackActivity.this,R.layout.tip_of_the_day,responseArray);
-                        //setListAdapter(adapter);
-                        lv.setAdapter(adapter);
+        Log.e("eee", Arrays.toString(surveyResponse));
 
 
-                        Button feedbackComplete = (Button) findViewById(R.id.finishButton);
+        if (surveyResponse[0] !=-1) {
+            for (int ind = 0; ind < surveyResponse.length; ind++) {
+                if (surveyResponse[ind] == correctChoice[ind]) {
+                    responsePosArray.add(Integer.toString(ind + 1) + ". " + posArray[ind]);
+                } else if (wrongChoice[ind] == 0 | surveyResponse[ind] == wrongChoice[ind]) {
+                    responseNegArray.add(Integer.toString(ind + 1) + ". " + negArray[ind]);
+                }
+            }
 
-                        feedbackComplete.setOnClickListener(new View.OnClickListener() {
-                            public void onClick(View v) {
-                                Intent i = new Intent(LifestyleFeedbackActivity.this, com.solutions.medadhere.medadheresolutionsapp.SurveySelectionActivity.class);
-                                startActivity(i);
-                                finish();
-                            }
-                        });
+            if (!responsePosArray.isEmpty()) {
+                responseArray.add("Positive Feedback");
+                responseArray.addAll(responsePosArray);
+            }
+            if (!responsePosArray.isEmpty() & !responseNegArray.isEmpty()) {
+                responseArray.add(" ");
+            }
+            if (!responseNegArray.isEmpty()) {
+                responseArray.add("Educational Feedback");
+                responseArray.addAll(responseNegArray);
+            }
 
-                    }
+            final ListView lv = (ListView) findViewById(R.id.LifestyleFeedbackView);
+            adapter = new ArrayAdapter<String>(LifestyleFeedbackActivity.this, R.layout.tip_of_the_day, responseArray);
+            //setListAdapter(adapter);
+            lv.setAdapter(adapter);
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-                });
 
+            Button feedbackComplete = (Button) findViewById(R.id.finishButton);
+
+            feedbackComplete.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    Intent i = new Intent(LifestyleFeedbackActivity.this, com.solutions.medadhere.medadheresolutionsapp.SurveySelectionActivity.class);
+                    startActivity(i);
+                    finish();
+                }
+            });
+
+        }
     }
 
 }

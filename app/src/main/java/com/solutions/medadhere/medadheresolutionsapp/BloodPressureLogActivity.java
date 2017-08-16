@@ -35,48 +35,7 @@ public class BloodPressureLogActivity extends AppCompatActivity {
         actionBar.hide();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blood_pressure_log);
-/*
-        DisplayMetrics dm = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(dm);
 
-        int width = dm.widthPixels;
-        int height = dm.heightPixels;
-*/
-        //getWindow().setLayout((int)(width*.8),(int)(height*.55));
-
-        //medicationList = ((MyApplication) this.getApplication()).getMedicationList();
-        //String [] medNames = ((MyApplication) this.getApplication()).getMedicationNames();
-
-        //System.out.println(Arrays.toString(medNames));
-
-        //Spinner spinner = (Spinner) findViewById(R.id.medicationSpinner);
-
-        //ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(this,   android.R.layout.simple_spinner_item, medNames);
-        //spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item); // The drop down view
-        //spinner.setAdapter(spinnerArrayAdapter);
-
-        /*
-        spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> arg0, View arg1,
-                                       int arg2, long arg3) {
-                // TODO Auto-generated method stub
-                Object item = arg0.getItemAtPosition(arg2);
-                if (item!=null) {
-                    medicine = item.toString();
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-                // TODO Auto-generated method stub
-            }
-        });
-        */
-
-        //mDatabase = FirebaseDatabase.getInstance().getReference();
-        //String UID = ((MyApplication) this.getApplication()).getUID();
-        //mDatabase.child("app").child("users").child(UID).child("medicine");
     }
 
     public void submit(View v) {
@@ -124,14 +83,14 @@ public class BloodPressureLogActivity extends AppCompatActivity {
     }
 
     public void returnToCal(View v){
-        Intent i = new Intent(this, com.solutions.medadhere.medadheresolutionsapp.BloodPressureActivity.class);
+        Intent i = new Intent(this, BPCalendarActivity.class);
         startActivity(i);
         finish();
     }
 
 
     public void checkLogs(View v) {
-        Intent i = new Intent(this, com.solutions.medadhere.medadheresolutionsapp.BloodPressureLogReadActivity.class);
+        Intent i = new Intent(this, BloodPressureLogReadActivity.class);
         i.putExtra("date", date);
         startActivity(i);
     }

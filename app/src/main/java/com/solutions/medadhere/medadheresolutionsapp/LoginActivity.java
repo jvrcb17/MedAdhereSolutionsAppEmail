@@ -3,15 +3,15 @@ package com.solutions.medadhere.medadheresolutionsapp;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
-import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -36,42 +36,43 @@ public class LoginActivity extends Activity {
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     CheckBox check;
-    AutoCompleteTextView mEdit;
+    CheckBox checkPass;
+    EditText mEdit;
+    EditText mPass;
     Context ctx;
     View v;
     String USER_FILENAME = "user_file";
+    private String REM_FILENAME = "rem_file";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ctx = this;
-        ConnectivityManager cm =
-                (ConnectivityManager)ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        boolean isConnected = activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
 
 
-            mEdit = (AutoCompleteTextView) findViewById(R.id.username);
-            check = (CheckBox) findViewById(R.id.checkbox);
+
+        mEdit = (EditText) findViewById(R.id.username1);
+        check = (CheckBox) findViewById(R.id.checkbox);
 
 
-if (isConnected){
-            SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-            String UIDstored = settings.getString("UID", "Default");
-            //Log.d("UID", UIDstored);
+        mPass = (EditText) findViewById(R.id.pass);
+        checkPass = (CheckBox) findViewById(R.id.checkPass);
+        checkPass.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    mPass.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                }
+                else{
+                    Log.e("Bool","FALSE");
+                    mPass.setInputType(InputType.TYPE_CLASS_TEXT |
+                            InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                }
+            }
+        });
 
 
-/*
-        if(!UIDstored.equals("Default")) {
-            ((MyApplication) this.getApplication()).setUID(UIDstored);
-            Intent i = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(i);
-            finish();
-        }
-*/
             FirebaseAuth.getInstance().signOut();
             mAuth = FirebaseAuth.getInstance();
             mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -79,12 +80,6 @@ if (isConnected){
                 public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                     FirebaseUser user = firebaseAuth.getCurrentUser();
                     if (user != null) {
-                        // User is signed in
-                        //Log.d("auth", "onAuthStateChanged:signed_in:" + user.getUid());
-                        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-                        SharedPreferences.Editor editor = settings.edit();
-                        editor.putString("UID", user.getUid());
-                        editor.commit();
 
                         ((MyApplication) LoginActivity.this.getApplication()).setUID(user.getUid());
 
@@ -103,67 +98,52 @@ if (isConnected){
             };
 
 
-            try {
-                FileInputStream fin = openFileInput(USER_FILENAME);
-                int c;
-                String temp = "";
-                while ((c = fin.read()) != -1) {
-                    temp = temp + Character.toString((char) c);
-                }
-                //Log.e("Login Attempt", temp);
-                if (temp.length() > 1) {
-                    mEdit.setText(temp);
-                    check.setChecked(true);
-                    deleteFile(USER_FILENAME);
-                    //login(temp+ "@mercer.edu","password",v);
-                } else {
-                    check.setChecked(false);
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+
+        try {
+            FileInputStream fin = openFileInput(USER_FILENAME);
+            FileInputStream finpass = openFileInput(REM_FILENAME);
+            int c;
+            String temp = "";
+            while ((c = fin.read()) != -1) {
+                temp = temp + Character.toString((char) c);
+            }
+            int d;
+            String tempPass = "";
+            while ((d = finpass.read()) != -1) {
+                tempPass = tempPass + Character.toString((char) d);
             }
 
+            //Log.e("Login Attempt", temp);
+            if (temp.length() > 1) {
+                mEdit.setText(temp);
+                check.setChecked(true);
+                deleteFile(USER_FILENAME);
+                //login(temp+ "@mercer.edu","password",v);
+            } else {
+                check.setChecked(false);
+            }
+            if (tempPass.length() > 1) {
+                mPass.setText(tempPass);
+                deleteFile(REM_FILENAME);
+                //login(temp+ "@mercer.edu","password",v);
+            } else {
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        else {
-            Toast.makeText(ctx, "Please Connect to the Internet", Toast.LENGTH_LONG).show();
-    reload();
-        }
+
+
         //fucntion that uses silent setSilent(silent);
     }
 
-    public void reload(){
-        long mil = 2000;
-        try {
-            wait(mil);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        ConnectivityManager cm =
-                (ConnectivityManager)ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-
-        boolean isConnected = activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
-        if (isConnected) {
-            mAuth.addAuthStateListener(mAuthListener);
-        }
-    }
 
     @Override
     public void onStart() {
         super.onStart();
-        ConnectivityManager cm =
-                (ConnectivityManager)ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+        mAuth.addAuthStateListener(mAuthListener);
 
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        boolean isConnected = activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
-        if (isConnected) {
-            mAuth.addAuthStateListener(mAuthListener);
-        }
 
     }
 
@@ -176,39 +156,26 @@ if (isConnected){
     }
 
     public void startMain(View v) {
-        ConnectivityManager cm =
-                (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        boolean isConnected = activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
-        if (isConnected) {
-            mEdit = (AutoCompleteTextView) findViewById(R.id.username);
-            check = (CheckBox) findViewById(R.id.checkbox);
-            if (check.isChecked()) {
-                try {
-                    FileOutputStream fos = openFileOutput(USER_FILENAME, Context.MODE_APPEND);
-                    fos.write(mEdit.getText().toString().getBytes());
-                    fos.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                deleteFile(USER_FILENAME);
-            }
+        mEdit = (EditText) findViewById(R.id.username1);
+        check = (CheckBox) findViewById(R.id.checkbox);
+        mPass = (EditText) findViewById(R.id.pass);
+        checkPass = (CheckBox) findViewById(R.id.checkPass);
+
+
+        if(mEdit.getText().length()>0&mPass.getText().length()>0){
 
 
             String email = mEdit.getText().toString() + "@medadheresolutions.com";
-            String password = "password";
+            String password =  mPass.getText().toString();
             //Log.d("username", email);
             //Log.d("password", password);
+                login(email, password, v);
 
-            login(email, password, v);
         }
         else{
-            Toast.makeText(ctx, "Please Connect to the Internet", Toast.LENGTH_LONG).show();
+            Toast.makeText(ctx,"Please Enter Login Credentials", Toast.LENGTH_LONG).show();
+
         }
     }
 
@@ -226,16 +193,83 @@ if (isConnected){
                         // signed in user can be handled in the listener.
                         if (!task.isSuccessful()) {
                             //Log.w("authorization", "signInWithEmail:failed", task.getException());
-                            Toast.makeText(ctx,"Login Does Not Exist", Toast.LENGTH_LONG).show();
-                            deleteFile(USER_FILENAME);
+                            if(task.getException().toString().contains("InvalidUserException")) {
+                                Toast.makeText(ctx, "Login Does Not Exist", Toast.LENGTH_LONG).show();
+                            }
+                            else if(task.getException().toString().contains("InvalidCredentialsException")){
+                                Toast.makeText(ctx, "Incorrect Password", Toast.LENGTH_LONG).show();
+                            }
+                            Log.e("EXCEPTION",task.getException().toString());
+
 
                         }
+                        else{
+                            deleteFile(REM_FILENAME);
+                            deleteFile(USER_FILENAME);
+                            if (check.isChecked()) {
 
+                                mEdit = (EditText) findViewById(R.id.username1);
+                                check = (CheckBox) findViewById(R.id.checkbox);
+                                mPass = (EditText) findViewById(R.id.pass);
+
+                                try {
+                                    FileOutputStream fosPass = openFileOutput(REM_FILENAME, Context.MODE_APPEND);
+                                    fosPass.write(mPass.getText().toString().getBytes());
+                                    fosPass.close();
+
+                                    FileOutputStream fos = openFileOutput(USER_FILENAME, Context.MODE_APPEND);
+                                    fos.write(mEdit.getText().toString().getBytes());
+                                    fos.close();
+                                } catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
                         // ...
                     }
                 });
     }
 
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        check = (CheckBox) findViewById(R.id.checkbox);
+
+        if (check.isChecked()) {
+
+            mEdit = (EditText) findViewById(R.id.username1);
+            //check = (CheckBox) findViewById(R.id.checkbox);
+            mPass = (EditText) findViewById(R.id.pass);
+
+            deleteFile(REM_FILENAME);
+            deleteFile(USER_FILENAME);
+            try {
+                FileOutputStream fosPass = openFileOutput(REM_FILENAME, Context.MODE_APPEND);
+                fosPass.write(mPass.getText().toString().getBytes());
+                fosPass.close();
+
+                FileOutputStream fos = openFileOutput(USER_FILENAME, Context.MODE_APPEND);
+                fos.write(mEdit.getText().toString().getBytes());
+                fos.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        onDestroy();
+
+    }
 
 }
 

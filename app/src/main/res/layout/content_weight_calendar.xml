@@ -30,19 +30,13 @@
             android:dateTextAppearance="@android:style/TextAppearance.Medium"
             android:showWeekNumber="false"/>
 
-        <Button
-            android:id="@+id/currDateButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Log for current Date"
-            android:layout_gravity="center"/>
 
         <TextView
             android:id="@+id/instructions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical|center_horizontal"
-            android:text="Click on a date from the calendar above to record today's weight. " />
+            android:text="Click on a date from the calendar above to record today's weight or view a previous entry. " />
 
     </LinearLayout>
 </ScrollView>

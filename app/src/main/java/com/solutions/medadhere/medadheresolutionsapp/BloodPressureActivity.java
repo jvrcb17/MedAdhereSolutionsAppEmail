@@ -248,7 +248,7 @@ public class BloodPressureActivity extends AppCompatActivity
                 String mon;
                 String d;
 
-                if (surMonth <0){
+                if (surMonth <10){
                     mon = "0"+Integer.toString(surMonth);
                 }
                 else{
@@ -265,15 +265,22 @@ public class BloodPressureActivity extends AppCompatActivity
                 int daysSince = one-two;
                 //Log.e("Days Since", Integer.toString(daysSince));
 
-                if (daysSince>=0) {
-                    Intent i = new Intent(ctx, BloodPressureLogActivity.class);
+                if (daysSince==0) {
+                    Intent i = new Intent(ctx, BPCalendarActivity.class);
                     //old.set(GregorianCalendar.MONTH, date.getMonth()-1);
                     i.putExtra("date", surYear+"-"+mon+"-"+d);//Log.e("nrp",String.format("%d-%d", date.getMonth(), date.getDay()));
                     startActivity(i);
                     //Snackbar.make(view, String.format("%d-%d", date.getMonth(), date.getDay()), Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 }
+                else if(daysSince>0){
+                    Intent i = new Intent(ctx, BloodPressureLogReadActivity.class);
+                    //old.set(GregorianCalendar.MONTH, date.getMonth()-1);
+                    i.putExtra("date", surYear+"-"+mon+"-"+d);//Log.e("nrp",String.format("%d-%d", date.getMonth(), date.getDay()));
+                    startActivity(i);
+
+                }
                 else{
-                    Snackbar.make(view,"Please only edit the current or past days.",Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                    Snackbar.make(view,"Please only edit the current day.",Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 }
 
 
@@ -300,26 +307,7 @@ public class BloodPressureActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        String UID = ((com.solutions.medadhere.medadheresolutionsapp.MyApplication) this.getApplication()).getUID();
-
-        mDatabase.child("app").child("users").child(UID).child("pharmanumber").addValueEventListener(
-                new ValueEventListener() {
-
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String phonenumber = dataSnapshot.getValue().toString();
-                        ((com.solutions.medadhere.medadheresolutionsapp.MyApplication) BloodPressureActivity.this.getApplication()).setPharmaPhone(phonenumber);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-                });
-        String tel = ((com.solutions.medadhere.medadheresolutionsapp.MyApplication) this.getApplication()).getPharmaPhone();
-
+        String tel = ((MyApplication) this.getApplication()).getPharmaPhone();
         int id = item.getItemId();
         if (id  == R.id.nav_home){
             Intent i = new Intent(this, com.solutions.medadhere.medadheresolutionsapp.MainActivity.class);
@@ -327,7 +315,7 @@ public class BloodPressureActivity extends AppCompatActivity
             finish();
         }
         else if (id == R.id.nav_bloodpressure) {
-            //Intent i = new Intent(this, BloodPressureActivity.class);
+            //Intent i = new Intent(this, BPCalendarActivity.class);
             //startActivity(i);
         }else if(id == R.id.nav_weight){
             Intent i = new Intent(this, WeightCalendarActivity.class);

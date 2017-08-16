@@ -41,6 +41,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static com.google.android.gms.common.ConnectionResult.rb;
+import static com.solutions.medadhere.medadheresolutionsapp.R.id.question;
+
 //import android.icu.text.DateFormat;
 //import android.icu.text.SimpleDateFormat;
 
@@ -62,11 +65,7 @@ public class LifestyleSurvey extends AppCompatActivity implements NavigationView
     Context ctx;
     final ArrayList<String> questions = new ArrayList<>();
     String[] questionArray = new String[questions.size()];
-    String buttonID;
     Toolbar toolbar;
-    TextView amountOfQuestions;
-    ProgressBar progressBar;
-    final static int GET_RESULT_TEXT = 0;
     ArrayList<String[]> questionchoices = new ArrayList<>();
     ArrayList<String[]> key = new ArrayList<>();
     int [] naArray;
@@ -75,7 +74,6 @@ public class LifestyleSurvey extends AppCompatActivity implements NavigationView
     float textsize = 20;
     int selected =0;
     public int questCount = 0;
-    int Lindsay = 0;
 
 
     @Override
@@ -166,31 +164,37 @@ public class LifestyleSurvey extends AppCompatActivity implements NavigationView
                         if (numRadBut > 0) {
                             radiogr.removeAllViews();
                         }
-                    horScrollView.scrollTo(qnum * 388, 0);
-                    if (qnum < 7) {
-                        if (qnum == 0) {
-                            buttonPrev.setVisibility(View.INVISIBLE);
+                        horScrollView.scrollTo(qnum *5* horScrollView.getMaxScrollAmount()/8, 0);
+                        if (qnum < 7) {
+                            if (qnum == 0) {
+                                buttonPrev.setVisibility(View.INVISIBLE);
+                            }
+                            buttonNext.setVisibility(View.VISIBLE);
                         }
-                        buttonNext.setVisibility(View.VISIBLE);
-                    }
-                    if (qnum > 0) {
-                        if (qnum == 7) {
-                            buttonNext.setVisibility(View.INVISIBLE);
+                        if (qnum > 0) {
+                            if (qnum == 7) {
+                                buttonNext.setVisibility(View.INVISIBLE);
+                            }
+                            buttonPrev.setVisibility(View.VISIBLE);
                         }
-                        buttonPrev.setVisibility(View.VISIBLE);
+                        button.setVisibility(view.VISIBLE);
+
+                        LinearLayout rblayout = (LinearLayout) findViewById(R.id.rblayout);
+                        questionsView.setText(Integer.toString(qnum + 1) + ".  " + questionArray[qnum]);
+
+                        number = questionchoices.get(qnum).length - 1;
+
+                        addRadioButtons(number, qnum);
+                        if(answers[qnum]+8!=radiogr.getCheckedRadioButtonId()){
+                            Log.e("access","radiogr");
+                            radiogr.check(answers[qnum]+8);
+                        }
+
                     }
-                    button.setVisibility(view.VISIBLE);
 
-                    LinearLayout rblayout = (LinearLayout) findViewById(R.id.rblayout);
-                    questionsView.setText(Integer.toString(qnum + 1) + ".  " + questionArray[qnum]);
 
-                    number = questionchoices.get(qnum).length - 1;
-
-                    addRadioButtons(number, qnum);
+                    prevClick=qnum;
                 }
-
-                prevClick=qnum;
-            }
 
             });
         }
@@ -199,7 +203,7 @@ public class LifestyleSurvey extends AppCompatActivity implements NavigationView
             public void onClick(View v) {
                 questCount++;
                 btnTag = (Button) findViewById(qnum+1);
-                if (questCount < 8){
+                if (questCount <= 8){
                     btnTag.performClick();
                 }
 
@@ -210,7 +214,7 @@ public class LifestyleSurvey extends AppCompatActivity implements NavigationView
             public void onClick(View v) {
                 questCount--;
                 btnTag = (Button) findViewById(qnum-1);
-                if (questCount >= 0) {
+                if (qnum >= 0) {
                     btnTag.performClick();
                 }
             }
@@ -222,8 +226,6 @@ public class LifestyleSurvey extends AppCompatActivity implements NavigationView
             public void onClick(View v) {
                 mDatabase = FirebaseDatabase.getInstance().getReference();
                 String UID = ((MyApplication) LifestyleSurvey.this.getApplication()).getUID();
-
-
 
                 selected=0;
                 int nonselected = 0;
@@ -245,17 +247,10 @@ public class LifestyleSurvey extends AppCompatActivity implements NavigationView
                     System.out.println(dateFormat.format(cal.getTime()));
                     final String currentDate = dateFormat.format(cal.getTime());
 
-                    mDatabase.child("app").child("users").child(UID).child("lifestylesurveyanswersRW").child(currentDate) .setValue(Arrays.toString(answers));
-                    deleteFile(LSURVEY_FILENAME);
-                    try {
-                        FileOutputStream fos = openFileOutput(LSURVEY_FILENAME, Context.MODE_APPEND);
-                        fos.write(currentDate.getBytes());
-                        fos.close();
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    mDatabase.child("app").child("users").child(UID).child("lifestylesurveyanswersRW").child(currentDate).setValue(Arrays.toString(answers));
+                    ((MyApplication) LifestyleSurvey.this.getApplication()).setLifestyleSurveyAnswers(answers);
+                    ((MyApplication) LifestyleSurvey.this.getApplication()).setLifestyleDate(currentDate);
+
                     Intent i = new Intent(LifestyleSurvey.this, LifestyleFeedbackActivity.class);
                     i.putExtra("date",currentDate);
                     startActivity(i);
@@ -273,8 +268,8 @@ public class LifestyleSurvey extends AppCompatActivity implements NavigationView
     }
 
 
-    public void addRadioButtons(int number, int question) {
-
+    public void addRadioButtons(int number, final int question) {
+        //Log.e("Create","Buttons");
         final RadioGroup rg = ((RadioGroup) findViewById(R.id.radiogroup));
 
         final int numberRB = number;
@@ -283,56 +278,67 @@ public class LifestyleSurvey extends AppCompatActivity implements NavigationView
         {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                answers[questionnumber]=checkedId-8;
-                rg.check(checkedId);
-                ((Button)findViewById(questionnumber)).setBackgroundColor(Color.TRANSPARENT);
+                if(checkedId>7) {
+                    answers[questionnumber] = checkedId - 8;
+                    ((Button) findViewById(questionnumber)).setBackgroundColor(Color.TRANSPARENT);
+                    //Log.e("ID", Integer.toString(group.getCheckedRadioButtonId()));
+                    if(group.getCheckedRadioButtonId()!=answers[questionnumber]+8){
+                        group.check(answers[questionnumber]+8);
+                    }
+                }
             }
         });
 
-        for (int row = 0; row < 1; row++) {
+        for (int i = 8; i <= number+8; i++) {
+            final RadioButton rdbtn = new RadioButton(this);
+            //rdbtn.setId((row * 2) + i);
 
-            for (int i = 8; i <= number+8; i++) {
-                final RadioButton rdbtn = new RadioButton(this);
-                //rdbtn.setId((row * 2) + i);
-                rdbtn.setText(questionchoices.get(qnum)[i-8]+" ");
-                int textColor = Color.parseColor("#A9A9A9");
-                rdbtn.setButtonTintList(ColorStateList.valueOf(textColor));
-                rdbtn.setTextSize(20);
-                rdbtn.setId(i);
+            rdbtn.setText(questionchoices.get(qnum)[i-8]+" ");
+            int textColor = Color.parseColor("#A9A9A9");
+            rdbtn.setButtonTintList(ColorStateList.valueOf(textColor));
+            rdbtn.setTextSize(20);
+            rdbtn.setId(i);
 
-                rg.addView(rdbtn);
-                if (i-8!=number) {
-                    Space space = new Space(this);
-                    space.setMinimumHeight(50);
-                    rg.addView(space);
-                }
+                Space space = new Space(this);
+                space.setMinimumHeight(50);
+                rg.addView(space);
 
-                if(answers[question]==i-8){
-                    Log.e("Set","Blue");
+
+            rg.addView(rdbtn);
+
+            if(answers[question]==i-8){
+                //Log.e("Set","Blue");
+                rdbtn.setBackgroundColor(Color.parseColor("#70FFFF"));
+                if(!rdbtn.isChecked()) {
+                    //Log.e("access","rdbtn");
                     rdbtn.setChecked(true);
-                    rdbtn.setBackgroundColor(Color.parseColor("#70FFFF"));
                 }
+            }
+            else{
+                rdbtn.setChecked(false);
+            }
 
-                rdbtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                        Log.e("RBID", Integer.toString(compoundButton.getId()));
-                        if (b){
-                            for (int i=8;i<=numberRB+8;i++){
-                                if(i!=(int)compoundButton.getId()){
-                                    Log.e("Color"+i,"TRANS"+numberRB);
-                                    ((RadioButton)findViewById(i)).setBackgroundColor(Color.TRANSPARENT);
+            rdbtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    //Log.e("RBID", Integer.toString(compoundButton.getId()));
+                    if (b){
+                        for (int i=8;i<=numberRB+8;i++){
+                            if(i!=(int)compoundButton.getId()){
+                                //Log.e("Color"+i,"TRANS"+numberRB);
+                                ((RadioButton)findViewById(i)).setBackgroundColor(Color.TRANSPARENT);
+                            }
+                            else{
+                                compoundButton.setBackgroundColor(Color.parseColor("#70FFFF"));
+                                if(!rdbtn.isChecked()) {
+                                    rdbtn.setChecked(b);
                                 }
                             }
-                            Log.e("Color"+compoundButton.getId(),"BLUE");
-                            compoundButton.setBackgroundColor(Color.parseColor("#70FFFF"));
                         }
                     }
-                });
-            }
+                }
+            });
         }
-
-
     }
 
 
@@ -342,24 +348,6 @@ public class LifestyleSurvey extends AppCompatActivity implements NavigationView
     @SuppressWarnings("StatementWithEmptyBody")
     public boolean onNavigationItemSelected(MenuItem item) {
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        String UID = ((MyApplication) this.getApplication()).getUID();
-
-        mDatabase.child("app").child("users").child(UID).child("pharmanumber").addValueEventListener(
-                new ValueEventListener() {
-
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String phonenumber = dataSnapshot.getValue().toString();
-                        //Log.e("Phone",phonenumber);
-                        ((MyApplication) LifestyleSurvey.this.getApplication()).setPharmaPhone(phonenumber);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-                });
         String tel = ((MyApplication) this.getApplication()).getPharmaPhone();
         // Handle navigation view item clicks here.
         int id = item.getItemId();
@@ -369,7 +357,7 @@ public class LifestyleSurvey extends AppCompatActivity implements NavigationView
             finish();
         }
         else if (id == R.id.nav_bloodpressure) {
-            Intent i = new Intent(this, BloodPressureActivity.class);
+            Intent i = new Intent(this, BPCalendarActivity.class);
             startActivity(i);
             finish();
         }else if(id == R.id.nav_weight){
@@ -389,16 +377,6 @@ public class LifestyleSurvey extends AppCompatActivity implements NavigationView
             startActivity(i);
             finish();
         } else if (id == R.id.nav_logout) {
-            SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-            String UIDstored = settings.getString("UID", "Default");
-            //Log.e("logout", UIDstored);
-
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putString("UID", "Default");
-            editor.commit();
-
-            UIDstored = settings.getString("UID", "Default");
-            //Log.e("logout", UIDstored);
             Intent i = new Intent(this, LoginActivity.class);
             startActivity(i);
             finish();

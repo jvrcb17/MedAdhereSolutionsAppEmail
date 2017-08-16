@@ -17,15 +17,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TimePicker;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Iterator;
 
 
 /**
@@ -62,34 +58,14 @@ public class MedicationLogActivity extends AppCompatActivity {
         //String c = ((MyApplication) this.getApplication()).getMedicationList().getValue
         //Log.d("medicine", c);
         //medicationList = ((MyApplication) this.getApplication()).getMedicationList();
-        final String [] medNames = ((MyApplication) this.getApplication()).getMedicationNames();
 
-        mDatabase.child("app").child("users").child(UID).child("medicine").addListenerForSingleValueEvent(
-                new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        ArrayList<String> records = new ArrayList<>();
-                        //records = new String[]{" "," "," "," "};
-                        Iterator<DataSnapshot> it = dataSnapshot.getChildren().iterator();
-                        System.out.println(dataSnapshot);
-                        int g=0;
-                        while (it.hasNext()) {
-                            DataSnapshot medicine = it.next();
-                            String attempts =  medicine.child("name").getValue().toString();
-                            records.add(attempts);
-                            //records[g] = (medicine.child("name").getValue().toString());
-                            g++;
-                        }
-                        mArray = new String[records.size()];
-                        mArray = records.toArray(mArray);
-                        setArray(mArray);
-                        //Log.e("mArray1", Arrays.toString(mArray));
-                    }
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-                });
+
+        final String [] medNames = new String[((MyApplication) this.getApplication()).getMeds().size()];
+        for(int ind=0;ind<((MyApplication) this.getApplication()).getMeds().size();ind++){
+            medNames[ind] = ((MyApplication) this.getApplication()).getMeds().get(ind);
+        }
+        setArray(medNames);
+
     }
 
     public void setArray(String [] x){

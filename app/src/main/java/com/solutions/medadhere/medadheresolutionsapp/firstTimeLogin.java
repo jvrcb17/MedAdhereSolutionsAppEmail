@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 
 
@@ -31,6 +32,7 @@ public class firstTimeLogin extends Activity {
     //private ArrayList<Medication> medicationList = new ArrayList<>();
     public static final String PREFS_NAME = "MyPrefsFile";
     private View mProgressView;
+    String UID;
 
 
     @Override
@@ -43,9 +45,98 @@ public class firstTimeLogin extends Activity {
         mProgressView = findViewById(R.id.login_progress);
         showProgress(true);
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        String UID = ((MyApplication) this.getApplication()).getUID();
+        UID = ((MyApplication) this.getApplication()).getUID();
+        getPharmaPhone();
+        findLifestyleFeedback();
+        findLiteracyFeedback();
         getMeds();
 
+
+    }
+
+    public void getPharmaPhone(){
+        mDatabase.child("app").child("users").child(UID).child("pharmanumber").addValueEventListener(
+                new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String phonenumber = dataSnapshot.getValue().toString();
+                        ((MyApplication) firstTimeLogin.this.getApplication()).setPharmaPhone(phonenumber);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
+                    }
+                });
+    }
+
+
+    public void findLifestyleFeedback() {
+        String UID = ((MyApplication) this.getApplication()).getUID();
+        final ArrayList<String> responseArray = new ArrayList<>();
+        mDatabase.child("app").child("users").child(UID).child("lifestylesurveyanswersRW").addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Iterator<DataSnapshot> it = dataSnapshot.getChildren().iterator();
+                        String lifedate="";
+                        while (it.hasNext()) {
+                            DataSnapshot medicine = it.next();
+                            lifedate = medicine.getKey().toString();
+                            String attempts = medicine.getValue().toString();
+                            responseArray.add(attempts);
+                            //Log.e("repsonse",attempts);
+                        }
+                        ((MyApplication) firstTimeLogin.this.getApplication()).setLifestyleDate(lifedate);
+                        if(responseArray.size()==0) {
+                            ArrayList<String> norepsonse = new ArrayList<String>(Collections.nCopies(36, "-1"));
+                            ((MyApplication) firstTimeLogin.this.getApplication()).setLiteracySurveyAnswersString(norepsonse);
+                        }
+                        else {
+                            ((MyApplication) firstTimeLogin.this.getApplication()).setLifestyleSurveyAnswersString(responseArray);
+                        }
+
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
+                    }
+                });
+    }
+    public void findLiteracyFeedback(){
+        String UID = ((MyApplication) this.getApplication()).getUID();
+        final ArrayList<String> responseArray1 = new ArrayList<>();
+        mDatabase.child("app").child("users").child(UID).child("literacysurveyanswersRW").addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Iterator<DataSnapshot> it = dataSnapshot.getChildren().iterator();
+                        String litdate="";
+                        while (it.hasNext()) {
+                            DataSnapshot medicine = it.next();
+                            litdate = medicine.getKey().toString();
+                            String attempts = medicine.getValue().toString();
+                            responseArray1.add(attempts);
+                        }
+                        ((MyApplication)firstTimeLogin.this.getApplication()).setLiteracyDate(litdate);
+
+                        if(responseArray1.size()==0) {
+                            int [] norepsonse = new int[36];
+                            for (int ind = 0;ind<36;ind++){
+                                norepsonse[ind]=-1;
+                            }
+                            ((MyApplication) firstTimeLogin.this.getApplication()).setLiteracySurveyAnswers(norepsonse);
+                        }
+                        else {
+                            ((MyApplication) firstTimeLogin.this.getApplication()).setLiteracySurveyAnswersString(responseArray1);
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
+                    }
+                });
     }
 
     public void getMeds() {
@@ -63,7 +154,7 @@ public class firstTimeLogin extends Activity {
                             medArray.add(medicine.getKey().toString());
                         }
                         //Log.e("meds", medArray.toString());
-
+                        ((MyApplication)firstTimeLogin.this.getApplication()).setMeds(medArray);
                         getMedFrequency(medArray);
                     }
 
@@ -85,6 +176,7 @@ public class firstTimeLogin extends Activity {
                             //e("reading", dataSnapshot.getValue().toString());
                             medFrequency.add(dataSnapshot.getValue().toString());
                             //e("medFrequency", medFrequency.toString());
+                            ((MyApplication)firstTimeLogin.this.getApplication()).addFrequency(dataSnapshot.getValue().toString());
                             if (finalI==medArray.size()-1){
                                 //e("medFrequencyFinal", medFrequency.toString());
                                 //TODO: Add Alarm function here based on frequency array

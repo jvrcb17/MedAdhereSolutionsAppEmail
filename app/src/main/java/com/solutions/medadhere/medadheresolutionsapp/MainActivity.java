@@ -1,8 +1,6 @@
 package com.solutions.medadhere.medadheresolutionsapp;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -15,38 +13,16 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Iterator;
-
-import static android.util.Log.e;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    String MED_FILENAME = "med_file";
-    String FREQ_FILENAME = "freq_file";
-    public static final String LSURVEY_FILENAME = "lsurvey_file";
-    public static final String HSURVEY_FILENAME = "hsurvey_file";
-    private DatabaseReference mDatabase;
 
-    String[] surveyResponse = new String[8];
-    ArrayList<String> medArray= new ArrayList<String>();
-    ArrayList<String> medFrequency= new ArrayList<String>();
     //private ArrayList<Medication> medicationList = new ArrayList<>();
     public static final String PREFS_NAME = "MyPrefsFile";
     ArrayAdapter<String> adapter;
@@ -76,63 +52,47 @@ public class MainActivity extends AppCompatActivity
 
 
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        String UID = ((MyApplication) this.getApplication()).getUID();
-        //String attempt2 = ((MyApplication) MainActivity.this.getApplication()).getPhone();
-        Log.e("UID",UID);
 
-        Log.e("Enters","Main");
-        //Log.e("Phone2",attempt2);
-        //getMeds(); // this creates a meds array and a frequency array from those meds
-        findLifestyleFeedback();
-        findHealthDate();
+        setLifestyleResponse(((MyApplication)this.getApplication()).getLifestyleSurveyAnswers());
 
-        Date d = new Date();
-        d.getDate();
-        d.getYear();
-        mDatabase.child("app").child("users").child(UID).child("pharmanumber").addValueEventListener(
-                new ValueEventListener() {
-
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String phonenumber = dataSnapshot.getValue().toString();
-                        ((MyApplication) MainActivity.this.getApplication()).setPharmaPhone(phonenumber);
-                        Log.e("Enters","Main");
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-                });
 
     }
 
 
-    private void initializeMessagesList() {
-
-        Calendar calendar = Calendar.getInstance();
-        int day = calendar.get(Calendar.DAY_OF_YEAR);
-        Log.e("Cal","the Day");
-        //Random generator = new Random();
-        int num = day % surveyResponse.length;
-        //Log.e("num",Integer.toString(num));
-
-        //String [] mArrayBefore = new String[messages.size()];
-        //mArrayBefore = messages.toArray(mArrayBefore);
-        String[] mArray = {"Messages will appear here once the survey data has loaded."};
-        //Log.e("list",Arrays.toString(surveyResponse));
-        if (num < surveyResponse.length) {
-            while(surveyResponse[num]==null & num<surveyResponse.length-1){
-                if(surveyResponse[num]==null) {
-                    //Log.e("surveyRes", "null"+Integer.toString(num));
-                }
-                num++;
-                if (num == surveyResponse.length-1){
-                    num =0;
-                }
+    private void initializeMessagesList(String [] surveyResponse) {
+        String [] mArray = {""};
+        int count=0;
+        for(int i=0;i<surveyResponse.length;i++){
+            if(surveyResponse[i]==null){
+                count++;
             }
-            mArray[0] = surveyResponse[num];
+        }
+
+        if(count!=8) {
+            Calendar calendar = Calendar.getInstance();
+            int day = calendar.get(Calendar.DAY_OF_YEAR);
+            Log.e("Cal", "the Day");
+            //Random generator = new Random();
+            int num = day % surveyResponse.length;
+            //Log.e("num",Integer.toString(num));
+
+            //String [] mArrayBefore = new String[messages.size()];
+            //mArrayBefore = messages.toArray(mArrayBefore);
+            //Log.e("list",Arrays.toString(surveyResponse));
+            if (num < surveyResponse.length) {
+                while (surveyResponse[num] == null & num < surveyResponse.length - 1) {
+                    if (surveyResponse[num] == null) {
+                    }
+                    num++;
+                    if (num == surveyResponse.length - 1) {
+                        num = 0;
+                    }
+                }
+                mArray[0] = surveyResponse[num];
+            }
+        }
+        else{
+           mArray[0] = "Please take the Lifestyle Survey to get a tip of the day!";
         }
 
         Log.e("Tip of","the Day");
@@ -145,6 +105,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void setLifestyleResponse(int[] intArray1) {
+        Log.e("Survey Response", Arrays.toString(intArray1));
+        String[] surveyResponse = new String[8];
         String[] posArray = getResources().getStringArray(R.array.LifestylePositiveMessagesArray);
         String[] negArray = getResources().getStringArray(R.array.LifestyleNegativeMessagesArray);
         final int[] correctChoice = {4,1,2,2,1,2,2,4};
@@ -152,149 +114,19 @@ public class MainActivity extends AppCompatActivity
 
         for (int ind = 0; ind < intArray1.length; ind++) {
             if (intArray1[ind] == correctChoice[ind]) {
+                //Log.e("Int Array1",Integer.toString(intArray1[ind]));
                 surveyResponse[ind] = posArray[ind];
-            } else if (wrongChoice[ind]==0 | intArray1[ind] == wrongChoice[ind]) {
+            } else if ((wrongChoice[ind]==0&intArray1[ind]!=-1) | intArray1[ind] == wrongChoice[ind]) {
+                //Log.e("Int Array1",Integer.toString(intArray1[ind]));
                 surveyResponse[ind] = negArray[ind];
             }
         }
-        initializeMessagesList();
+
+        Log.e("To Init",Arrays.toString(surveyResponse));
+        initializeMessagesList(surveyResponse);
     }
 
 
-    public void findLifestyleFeedback() {
-        String UID = ((MyApplication) this.getApplication()).getUID();
-        final ArrayList<String> responseArray = new ArrayList<>();
-        final int[] surveyResponses = new int[8];
-        final String[] lifestyledate = new String[1];
-        mDatabase.child("app").child("users").child(UID).child("lifestylesurveyanswersRW").addListenerForSingleValueEvent(
-                new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Iterator<DataSnapshot> it = dataSnapshot.getChildren().iterator();
-                        int g = 0;
-                        if(it.hasNext()) {
-                            while (it.hasNext()) {
-                                DataSnapshot medicine = it.next();
-                                String attempts = medicine.getValue().toString();
-                                //Log.e("Hopeful Date",medicine.getKey().toString());
-                                responseArray.add(attempts);
-                                g++;
-                                if (!it.hasNext()) {
-                                    lifestyledate[0] = medicine.getKey().toString();
-                                }
-                            }
-                            ArrayList<String> finalresponses = new ArrayList<String>(Arrays.asList(responseArray.get(responseArray.size() - 1).split(",")));
-                            for (int i = 0; i < finalresponses.size(); i++) {
-                                if (i == finalresponses.size() - 1) {
-                                    surveyResponses[i] = Integer.parseInt(finalresponses.get(i).substring(1, (finalresponses.get(i)).length() - 1));
-                                } else {
-                                    surveyResponses[i] = Integer.parseInt(finalresponses.get(i).substring(1, (finalresponses.get(i)).length()));
-                                }
-                            }
-                            setLifestyleResponse(surveyResponses);
-                            //Log.e("again final date",lifestyledate[0]);
-
-                            ((TextView) findViewById(R.id.life)).setText("Lifestyle Survey: " + lifestyledate[0]);
-
-                            deleteFile(LSURVEY_FILENAME);
-                            try {
-                                FileOutputStream fos = openFileOutput(LSURVEY_FILENAME, Context.MODE_APPEND);
-                                fos.write(lifestyledate[0].getBytes());
-                                fos.close();
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        else{
-                            deleteFile(LSURVEY_FILENAME);
-                            try {
-                                FileOutputStream fos = openFileOutput(LSURVEY_FILENAME, Context.MODE_APPEND);
-                                fos.write("Not Taken Yet".getBytes());
-                                fos.close();
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            String [] array = {"Please take the Lifestyle Survey to get daily tips."};
-                            adapter = new ArrayAdapter<String>(MainActivity.this, R.layout.tip_of_the_day, array);
-                            //setListAdapter(adapter);
-                            final ListView lv = (ListView) findViewById(R.id.messagesListView);
-                            lv.setAdapter(adapter);
-                        }
-
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-
-                });
-
-    }
-
-    public void findHealthDate() {
-        String UID = ((MyApplication) this.getApplication()).getUID();
-        final ArrayList<String> responseArray = new ArrayList<>();
-        final int[] surveyResponses = new int[8];
-        final String[] literacydate = new String[1];
-        mDatabase.child("app").child("users").child(UID).child("literacysurveyanswersRW").addListenerForSingleValueEvent(
-                new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Iterator<DataSnapshot> it = dataSnapshot.getChildren().iterator();
-                        int g = 0;
-                        if(it.hasNext()) {
-                            while (it.hasNext()) {
-                                DataSnapshot medicine = it.next();
-                                if (!it.hasNext()) {
-                                    literacydate[0] = medicine.getKey().toString();
-                                }
-                            }
-
-
-                            ((TextView) findViewById(R.id.health)).setText("Literacy Survey: " + literacydate[0]);
-
-                            deleteFile(HSURVEY_FILENAME);
-                            try {
-                                FileOutputStream fos = openFileOutput(HSURVEY_FILENAME, Context.MODE_APPEND);
-                                fos.write(literacydate[0].getBytes());
-                                fos.close();
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        else{
-                            deleteFile(HSURVEY_FILENAME);
-                            try {
-                                FileOutputStream fos = openFileOutput(HSURVEY_FILENAME, Context.MODE_APPEND);
-                                fos.write("Not Taken Yet".getBytes());
-                                fos.close();
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-
-                });
-
-        //first notification at 11 AM week from last Survey Date
-        //startWeeklyAlarm(this);
-
-    }
 
 
     @Override
@@ -317,7 +149,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
         if (id == R.id.nav_home) {
         } else if (id == R.id.nav_bloodpressure) {
-            Intent i = new Intent(this, BloodPressureActivity.class);
+            Intent i = new Intent(this, BPCalendarActivity.class);
             startActivity(i);
         } else if(id == R.id.nav_weight){
             Intent i = new Intent(this, WeightCalendarActivity.class);
@@ -333,16 +165,6 @@ public class MainActivity extends AppCompatActivity
             i.setData(Uri.parse("tel:" + tel));
             startActivity(i);
         } else if (id == R.id.nav_logout) {
-            SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-            String UIDstored = settings.getString("UID", "Default");
-            e("logout", UIDstored);
-
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putString("UID", "Default");
-            editor.commit();
-
-            UIDstored = settings.getString("UID", "Default");
-            e("logout", UIDstored);
             Intent i = new Intent(this, LoginActivity.class);
             startActivity(i);
             finish();
@@ -356,118 +178,6 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
-
-    /*
-    public void getMeds() {
-        String UID = ((MyApplication) this.getApplication()).getUID();
-        mDatabase.child("app").child("users").child(UID).child("medicine").addListenerForSingleValueEvent(
-                new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        //e("reading", dataSnapshot.toString());
-                        initializeMessagesList();
-                        Iterator<DataSnapshot> it = dataSnapshot.getChildren().iterator();
-                        while (it.hasNext()) {
-                            DataSnapshot medicine = it.next();
-                            //e("reading2", medicine.toString());
-                            //e("reading3", medicine.getKey());
-                            medArray.add(medicine.getKey().toString());
-                        }
-                        //Log.e("meds", medArray.toString());
-
-                        getMedFrequency(medArray);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-                });
-    }
-    public void getMedFrequency(final ArrayList<String> medArray){
-        String UID = ((MyApplication) this.getApplication()).getUID();
-        for(int i=0;i<medArray.size();i++) {
-            final int finalI = i;
-            mDatabase.child("app").child("users").child(UID).child("medicine").child(medArray.get(i)).child("frequency").addListenerForSingleValueEvent(
-                    new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            //e("currentMed", medArray.get(finalI));
-                            //e("reading", dataSnapshot.getValue().toString());
-                            medFrequency.add(dataSnapshot.getValue().toString());
-                            //e("medFrequency", medFrequency.toString());
-                            if (finalI==medArray.size()-1){
-                                //e("medFrequencyFinal", medFrequency.toString());
-                                //TODO: Add Alarm function here based on frequency array
-                                fileIOMeds(medArray,medFrequency);//to add the name of the medicine as well
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                        }
-                    });
-        }
-    }
-
-
-    public void fileIOMeds(ArrayList<String> medArray, ArrayList<String> medFrequency) {
-        deleteFile(MED_FILENAME);
-        try {
-            FileOutputStream fos = openFileOutput(MED_FILENAME, Context.MODE_APPEND);
-            String text = "";
-            for (int i = 0; i < medArray.size(); i++) {
-                text = text.concat(medArray.get(i));
-                if (i != medArray.size() - 1) {
-                    text = text.concat("\n");
-                }
-            }
-            fos.write(text.getBytes());
-            fos.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        //Frequency Array
-deleteFile(FREQ_FILENAME);
-        try {
-            FileOutputStream fos = openFileOutput(FREQ_FILENAME, Context.MODE_APPEND);
-            String text = "";
-            for (int i = 0; i < medFrequency.size(); i++) {
-                text = text.concat(medFrequency.get(i));
-                if (i != medFrequency.size() - 1) {
-                    text = text.concat("\n");
-                }
-            }
-            //Log.e("Freq",text);
-            fos.write(text.getBytes());
-            fos.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        startAlarm(this);
-    }
-
-    public void startAlarm(Context context) {
-
-        //first notification at 10 AM next day, this should always fire if they have prescribed medication
-        Intent intent1 = new Intent(this,ReminderService.class);
-        int type = intent1.getIntExtra("type", 0);
-        intent1.putExtra("type", type);
-        startService(intent1);
-
-    }
-
-
-*/
-
 
 
 }

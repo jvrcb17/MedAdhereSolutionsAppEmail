@@ -10,6 +10,7 @@
 
     <application
         android:name=".MyApplication"
+        android:icon="@mipmap/app_icon"
         android:allowBackup="true"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -50,6 +51,16 @@
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar" />
 
+        <activity android:name=".MedicationAdherenceSurvey"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+
+        <activity android:name=".AppSatisfactionSurveyActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+
         <activity android:name=".MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar"/>
@@ -57,6 +68,12 @@
         <activity android:name=".LifestyleFeedbackActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar"/>
+
+
+        <activity
+            android:name=".BPCalendarActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
             android:name=".BloodPressureActivity"

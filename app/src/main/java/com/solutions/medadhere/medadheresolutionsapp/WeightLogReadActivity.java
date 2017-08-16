@@ -19,8 +19,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -34,6 +38,8 @@ public class WeightLogReadActivity extends AppCompatActivity {
     Context ctx = this;
     ArrayList<Medication> medicationList;
     ArrayAdapter<String> adapter;
+    Boolean past = false;
+
     protected void onCreate(Bundle savedInstanceState) {
         Intent i = getIntent();
         date = i.getStringExtra("date");
@@ -50,7 +56,30 @@ public class WeightLogReadActivity extends AppCompatActivity {
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         UID = ((MyApplication) this.getApplication()).getUID();
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd");
+
+        try {
+            Date clicked = formatter.parse(date);
+            Date today = new Date();
+
+            if((int)getDifferenceDays(clicked,today)>0){
+                past = true;
+            }
+            else{
+                past = false;
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+
         update();
+    }
+
+    public static long getDifferenceDays(Date d1, Date d2) {
+        long diff = d2.getTime() - d1.getTime();
+        return TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
     }
 
     public void update() {
@@ -104,53 +133,54 @@ public class WeightLogReadActivity extends AppCompatActivity {
 
 
                         final String[] finalMArray = mArray;
-                        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> adapterView, final View view, final int item, long l) {
-                                AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-                                builder.setTitle("Delete Weight Log");
+                        if(!past) {
+                            lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                                @Override
+                                public void onItemClick(AdapterView<?> adapterView, final View view, final int item, long l) {
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                                    builder.setTitle("Delete Weight Log");
 
-                                // set dialog message
-                                builder
-                                        .setMessage("Would you like to delete "+ finalMArray[item]+"?")
-                                        .setCancelable(false)
-                                        .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog,int id) {
+                                    // set dialog message
+                                    builder
+                                            .setMessage("Would you like to delete " + finalMArray[item] + "?")
+                                            .setCancelable(false)
+                                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
 
-                                                mDatabase.child("app").child("users").child(UID).child("weightLog").child(date).removeValue();
-                                                for (int i=2;i<finalMArray.length;i++) {
-                                                    if(i!=item) {
-                                                        int space = finalMArray[i].lastIndexOf(" ");
-                                                        String time = finalMArray[i].substring(0,space);
-                                                        String weight = finalMArray[i].substring(space+1);
-                                                        String ampm = time.substring(time.length()-2);
-                                                        int hour = Integer.parseInt(time.substring(0,time.indexOf(":")));
-                                                        if(ampm.contains("PM")){
-                                                            hour=hour+12;
+                                                    mDatabase.child("app").child("users").child(UID).child("weightLog").child(date).removeValue();
+                                                    for (int i = 2; i < finalMArray.length; i++) {
+                                                        if (i != item) {
+                                                            int space = finalMArray[i].lastIndexOf(" ");
+                                                            String time = finalMArray[i].substring(0, space);
+                                                            String weight = finalMArray[i].substring(space + 1);
+                                                            String ampm = time.substring(time.length() - 2);
+                                                            int hour = Integer.parseInt(time.substring(0, time.indexOf(":")));
+                                                            if (ampm.contains("PM")) {
+                                                                hour = hour + 12;
+                                                            }
+
+                                                            mDatabase.child("app").child("users").child(UID).child("weightLog").child(date).child(Integer.toString(hour) + ":" + time.substring(time.indexOf(":") + 1, time.length() - 2)).setValue(weight);
                                                         }
-
-                                                        mDatabase.child("app").child("users").child(UID).child("weightLog").child(date).child(Integer.toString(hour)+":"+time.substring(time.indexOf(":")+1,time.length()-2)).setValue(weight);
                                                     }
+                                                    update();
                                                 }
-                                                update();
-                                            }
-                                        })
-                                        .setNegativeButton("No",new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog,int id) {
-                                                // if this button is clicked, just close
-                                                // the dialog box and do nothing
-                                                dialog.cancel();
-                                            }
-                                        });
+                                            })
+                                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    // if this button is clicked, just close
+                                                    // the dialog box and do nothing
+                                                    dialog.cancel();
+                                                }
+                                            });
 
-                                // create alert dialog
-                                AlertDialog alertDialog = builder.create();
+                                    // create alert dialog
+                                    AlertDialog alertDialog = builder.create();
 
-                                // show it
-                                alertDialog.show();
-                            }
-                        });
-
+                                    // show it
+                                    alertDialog.show();
+                                }
+                            });
+                        }
 
 
                      }

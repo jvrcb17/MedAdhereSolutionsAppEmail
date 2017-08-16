@@ -2,7 +2,6 @@ package com.solutions.medadhere.medadheresolutionsapp;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,11 +24,8 @@ import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -144,7 +140,7 @@ public class HealthSurvey extends AppCompatActivity
                 @Override
                 public void onClick(View view) {
                     qnum = btnTag.getId();
-                    horScrollView.scrollTo(qnum*388,0);
+                    horScrollView.scrollTo(qnum*22*horScrollView.getMaxScrollAmount()/36,0);
                     if (qnum<35){
                         if (qnum==0){
                             buttonPrev.setVisibility(View.INVISIBLE);
@@ -370,9 +366,9 @@ public class HealthSurvey extends AppCompatActivity
 
                     mDatabase.child("app").child("users").child(UID).child("literacysurveyanswersRW").child(currentDate) .setValue(Arrays.toString(answers));
 
-                    ((MyApplication) HealthSurvey.this.getApplication()).setLiteracySurveyAnswersRW(answers);
+                    ((MyApplication) HealthSurvey.this.getApplication()).setLiteracySurveyAnswers(answers);
+                    ((MyApplication) HealthSurvey.this.getApplication()).setLiteracyDate(currentDate);
                     Intent i = new Intent(HealthSurvey.this, SurveySelectionActivity.class);
-                    i.putExtra("date",currentDate);
                     startActivity(i);
                     finish();
                 }
@@ -466,24 +462,6 @@ public class HealthSurvey extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     public boolean onNavigationItemSelected(MenuItem item) {
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        String UID = ((MyApplication) this.getApplication()).getUID();
-
-        mDatabase.child("app").child("users").child(UID).child("pharmanumber").addValueEventListener(
-                new ValueEventListener() {
-
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String phonenumber = dataSnapshot.getValue().toString();
-                        //Log.e("Phone",phonenumber);
-                        ((MyApplication) HealthSurvey.this.getApplication()).setPharmaPhone(phonenumber);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-                });
         String tel = ((MyApplication) this.getApplication()).getPharmaPhone();
         Log.e("Tel",tel);
         // Handle navigation view item clicks here.
@@ -494,7 +472,7 @@ public class HealthSurvey extends AppCompatActivity
             finish();
         }
         else if (id == R.id.nav_bloodpressure) {
-            Intent i = new Intent(this, BloodPressureActivity.class);
+            Intent i = new Intent(this, BPCalendarActivity.class);
             startActivity(i);
             finish();
         }else if(id == R.id.nav_weight){
@@ -514,15 +492,7 @@ public class HealthSurvey extends AppCompatActivity
             startActivity(i);
             finish();
         } else if (id == R.id.nav_logout) {
-            SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-            String UIDstored = settings.getString("UID", "Default");
-            //Log.e("logout", UIDstored);
 
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putString("UID", "Default");
-            editor.commit();
-
-            UIDstored = settings.getString("UID", "Default");
             //Log.e("logout", UIDstored);
             Intent i = new Intent(this, LoginActivity.class);
             startActivity(i);

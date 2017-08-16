@@ -461,7 +461,7 @@ public class healthLiteracyExampleActivity extends AppCompatActivity
             finish();
         }
         else if (id == R.id.nav_bloodpressure) {
-            Intent i = new Intent(this, BloodPressureActivity.class);
+            Intent i = new Intent(this, BPCalendarActivity.class);
             startActivity(i);
             finish();
         }else if(id == R.id.nav_weight){

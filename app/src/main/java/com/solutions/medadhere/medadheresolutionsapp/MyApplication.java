@@ -1,10 +1,12 @@
 package com.solutions.medadhere.medadheresolutionsapp;
 
 import android.app.Application;
+import android.util.Log;
 
 import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by Yeshy on 3/11/2016.
@@ -19,18 +21,17 @@ public class MyApplication extends Application{
     private String pharmaNumber;
 
 
+    private String literacydate;
+    private String lifestyledate;
+    private String adherencedate;
 
-    private int[] demographicsSurveyAnswers = {0,0,0,0,0,0,0};
     private int[] lifestyleSurveyAnswers = {0,0,0,0,0,0,0,0};
-    private int[] lifestyleSurveyAnswersRW = {0,0,0,0,0,0,0,0};
     private int[] adherenceSurveyAnswers = {0,0,0,0,0,0,0,0};
-    private int[] adherenceSurveyAnswersRW = {0,0,0,0,0,0,0,0};
     private int[] literacySurveyAnswers = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    private int[] literacySurveyAnswersRW = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-
-    private ArrayList<Medication> medicationList = new ArrayList<>();
 
 
+    private ArrayList<String> freqList = new ArrayList<>();
+    private ArrayList<String> medsList = new ArrayList<>();
 
 
     public void setEmail(String email) {
@@ -74,101 +75,118 @@ public class MyApplication extends Application{
         return pharmaNumber;
     }
 
-    public void addMedication(Medication medication) {
-        medicationList.add(medication);
+    //*********************************
+
+    public void setMeds(ArrayList<String> medicine){
+        this.medsList = medicine;
+
     }
 
-    public void removeMedication() {
-        if(medicationList.size() != 0) {
-            medicationList.remove(medicationList.size() - 1);
-        }
-    }
-    public void addMedicationList(ArrayList<Medication> medicationList) {
-        this.medicationList = medicationList;
+    public ArrayList<String> getMeds(){
+        return this.medsList;
+
     }
 
-    public ArrayList<Medication> getMedicationList() {
-        return medicationList;
+    public void addFrequency(String freq){
+        freqList.add(freq);
     }
 
-    public void resetMedicationList() {
-        medicationList = new ArrayList<>();
+    public ArrayList<String> getFreqList(){
+        return this.freqList;
     }
 
-    public String[] getMedicationNames() {
-        String [] medicationNames = new String[medicationList.size()];
-        int counter = 0;
-        for(Medication m: medicationList) {
-            medicationNames[counter] = m.getName();
-            System.out.println(m.getName());
-            counter++;
-        }
-        return medicationNames;
-    }
-    //********************************************************************************************
-    public void setDemographicsSurveyAnswers(int[] answers) {
-        if(answers.length == demographicsSurveyAnswers.length)
-            demographicsSurveyAnswers = answers;
-    }
 
-    public int[] getDemographicsSurveyAnswers() {
-        return demographicsSurveyAnswers;
-    }
-    //********************************************************************************************
-    public void setLiteracySurveyAnswers(int[] answers) {
-        if(answers.length == literacySurveyAnswers.length)
-            literacySurveyAnswers = answers;
-    }
+    //************************************  SURVEYS  **************************************
 
-    public void setLiteracySurveyAnswersRW(int[] answersRW) {
-        if(answersRW.length == literacySurveyAnswersRW.length)
-            literacySurveyAnswersRW = answersRW;
-    }
+    //*************************  Literacy Survey  **************************************
 
     public int[] getLiteracySurveyAnswers() {
-        return literacySurveyAnswers;
+        return this.literacySurveyAnswers;
     }
 
-    public int[] getLiteracySurveyAnswersRW() {
-        return literacySurveyAnswersRW;
-    }
-    //********************************************************************************************
-    public void setAdherenceSurveyAnswers(int[] answers) {
-        if(answers.length == adherenceSurveyAnswers.length)
-            adherenceSurveyAnswers = answers;
+    public void setLiteracySurveyAnswers(int[] answers) {
+        this.literacySurveyAnswers = answers;
     }
 
-    public void setAdherenceSurveyAnswersRW(int[] answersRW) {
-        if(answersRW.length == adherenceSurveyAnswersRW.length)
-            adherenceSurveyAnswersRW = answersRW;
+    public void setLiteracySurveyAnswersString(ArrayList<String> answersRW) {
+        String lastEntry = answersRW.get(answersRW.size()-1);
+        int ind  = lastEntry.indexOf(",");
+        int count = 0;
+        while(ind!=-1){
+            if(ind==1) {
+                this.literacySurveyAnswers[count] = Integer.parseInt(String.valueOf(lastEntry.charAt(1)));
+
+            }
+            else{
+                this.literacySurveyAnswers[count] = Integer.parseInt(lastEntry.substring(1,ind));
+                Log.e("non-one",lastEntry.substring(1,ind));
+            }
+            lastEntry = lastEntry.substring(ind+1);
+            Log.e("latest",lastEntry);
+            ind  = lastEntry.indexOf(",");
+            count++;
+        }
+        if(lastEntry.length()>2){
+            this.literacySurveyAnswers[count] = Integer.parseInt(lastEntry.substring(1,lastEntry.length()-1));
+        }
+        else {
+            this.literacySurveyAnswers[count] = Integer.parseInt(String.valueOf(lastEntry.charAt(1)));
+        }
+        Log.e("Lit Answers", Arrays.toString(literacySurveyAnswers));
     }
 
-    public int[] getAdherenceSurveyAnswers() {
-        return adherenceSurveyAnswers;
+    public void setLiteracyDate(String date){this.literacydate=date;}
+    public String getLiteracyDate(){
+        return this.literacydate;
     }
 
-    public int[] getAdherenceSurveyAnswersRW() {
-        return adherenceSurveyAnswersRW;
-    }
-    //********************************************************************************************
-    public void setLifestyleSurveyAnswers(int[] answers) {
-        if(answers.length == lifestyleSurveyAnswers.length)
-            lifestyleSurveyAnswers = answers;
-    }
 
-    public void setLifestyleSurveyAnswersRW(int[] answersRW) {
-        if(answersRW.length == lifestyleSurveyAnswersRW.length)
-            lifestyleSurveyAnswersRW = answersRW;
-    }
+
+    //**************************  Lifestyle Survey  *************************************
+
 
     public int[] getLifestyleSurveyAnswers() {
-        return lifestyleSurveyAnswers;
+        return  this.lifestyleSurveyAnswers;
     }
 
-    public int[] getLifestyleSurveyAnswersRW() {
-        return lifestyleSurveyAnswersRW;
+    public void setLifestyleSurveyAnswers(int[] answers) {
+        this.lifestyleSurveyAnswers = answers;
     }
-    //********************************************************************************************
+
+    public void setLifestyleSurveyAnswersString(ArrayList<String> answersRW) {
+        String lastEntry = answersRW.get(answersRW.size()-1);
+        int ind  = lastEntry.indexOf(",");
+        int count = 0;
+        while(ind!=-1){
+            if(ind==1) {
+                this.lifestyleSurveyAnswers[count] = Integer.parseInt(String.valueOf(lastEntry.charAt(1)));
+
+            }
+            else{
+                this.lifestyleSurveyAnswers[count] = Integer.parseInt(lastEntry.substring(1,ind));
+                Log.e("non-one",lastEntry.substring(1,ind));
+            }
+            lastEntry = lastEntry.substring(ind+1);
+            Log.e("latest",lastEntry);
+            ind  = lastEntry.indexOf(",");
+            count++;
+        }
+        if(lastEntry.length()>2){
+            this.lifestyleSurveyAnswers[count] = Integer.parseInt(lastEntry.substring(1,lastEntry.length()-1));
+        }
+        else {
+            this.lifestyleSurveyAnswers[count] = Integer.parseInt(String.valueOf(lastEntry.charAt(1)));
+        }
+        //Log.e("Intake Life",answersRW.toString());
+        //Log.e("OutTake", Arrays.toString(lifestyleSurveyAnswers));
+    }
+
+    public void setLifestyleDate(String date){this.lifestyledate=date;}
+    public String getLifestyleDate(){
+        return this.lifestyledate;
+    }
+
+
 
     public String getUID() {
         return uid;

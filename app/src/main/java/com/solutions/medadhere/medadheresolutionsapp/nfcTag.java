@@ -25,9 +25,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Iterator;
 
 //import android.widget.TimePicker;
 
@@ -86,32 +84,11 @@ public class nfcTag extends AppCompatActivity {
         //setContentView(R.layout.activity_medication_log);///////////////////////////////////////////////////////////////
         setContentView(R.layout.nfc_tag);
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        String UID = ((MyApplication) this.getApplication()).getUID();
-        final String [] medNames = ((MyApplication) this.getApplication()).getMedicationNames();
-
-        mDatabase.child("app").child("users").child(UID).child("medicine").addListenerForSingleValueEvent(
-                new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        ArrayList<String> records = new ArrayList<>();
-                        Iterator<DataSnapshot> it = dataSnapshot.getChildren().iterator();
-                        System.out.println(dataSnapshot);
-                        int g=0;
-                        while (it.hasNext()) {
-                            DataSnapshot medicine = it.next();
-                            String attempts =  medicine.child("name").getValue().toString();
-                            records.add(attempts);
-                            g++;
-                        }
-                        mArray = new String[records.size()];
-                        mArray = records.toArray(mArray);
-                        setArray(mArray);
-                    }
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                    }
-                });
+        final String [] medNames = new String[((MyApplication) this.getApplication()).getMeds().size()];
+        for(int ind=0;ind<((MyApplication) this.getApplication()).getMeds().size();ind++){
+            medNames[ind] = ((MyApplication) this.getApplication()).getMeds().get(ind);
+        }
+        setArray(medNames);
     }
 
 

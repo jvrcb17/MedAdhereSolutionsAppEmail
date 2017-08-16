@@ -242,7 +242,7 @@ public class ReminderService extends IntentService
         if (typeOfNotification==1|typeOfNotification==2|typeOfNotification==3) {
 
             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
-                    .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.health_logo))//
+                    .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.health_logo_icon))//
                     .setSmallIcon(R.drawable.ic_menu_send)
                     .setContentTitle("AMC-n-ME")
                     .setContentText("Please take your medication(s): " + printedMeds);

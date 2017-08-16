@@ -13,18 +13,11 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.CalendarView.OnDateChangeListener;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -67,32 +60,6 @@ public class WeightCalendarActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-        Button currentDateButton = (Button)findViewById(R.id.currDateButton);
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            currentDateButton.setVisibility(View.INVISIBLE);
-        }
-        else{
-            currentDateButton.setVisibility(View.VISIBLE);
-        }
-
-        currentDateButton.setOnClickListener(new View.OnClickListener() {
-                                      @Override
-                                      public void onClick(View view) {
-                                          String data = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-
-                                          String currDate = data;
-                                          curYear = Integer.parseInt(currDate.substring(0, currDate.indexOf("-")));
-                                          curMonth = Integer.parseInt(currDate.substring(currDate.indexOf("-") + 1, currDate.lastIndexOf("-")));
-                                          curDay = Integer.parseInt(currDate.substring(currDate.lastIndexOf("-") + 1, currDate.length()));
-                                          Intent i = new Intent(ctx, MedicationLogActivity.class);
-                                          //old.set(GregorianCalendar.MONTH, date.getMonth()-1);
-                                          Log.e("Current Date",data);
-                                          i.putExtra("date", data);//Log.e("nrp",String.format("%d-%d", date.getMonth(), date.getDay()));
-                                          startActivity(i);
-                                      }
-                                  });
 
 
 
@@ -144,15 +111,22 @@ public class WeightCalendarActivity extends AppCompatActivity
                 }
                 int daysSince = one-two;
 
-                if (daysSince>=0) {
+                if (daysSince==0) {
                     Intent i = new Intent(ctx, WeightLogActivity.class);
                     //old.set(GregorianCalendar.MONTH, date.getMonth()-1);
                     i.putExtra("date", Integer.toString(year)+"-"+mon+"-"+d);//Log.e("nrp",String.format("%d-%d", date.getMonth(), date.getDay()));
                     startActivity(i);
                     //Snackbar.make(view, String.format("%d-%d", date.getMonth(), date.getDay()), Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 }
+                else if (daysSince>0) {
+                    Intent i = new Intent(ctx, WeightLogReadActivity.class);
+                    //old.set(GregorianCalendar.MONTH, date.getMonth()-1);
+                    i.putExtra("date", Integer.toString(year)+"-"+mon+"-"+d);//Log.e("nrp",String.format("%d-%d", date.getMonth(), date.getDay()));
+                    startActivity(i);
+                    //Snackbar.make(view, String.format("%d-%d", date.getMonth(), date.getDay()), Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                }
                 else{
-                    Snackbar.make(view,"Please only edit the current or past days.",Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                    Snackbar.make(view,"Please only edit the current day.",Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 }
 
             }
@@ -202,24 +176,6 @@ public class WeightCalendarActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        String UID = ((MyApplication) this.getApplication()).getUID();
-
-        mDatabase.child("app").child("users").child(UID).child("pharmanumber").addValueEventListener(
-                new ValueEventListener() {
-
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String phonenumber = dataSnapshot.getValue().toString();
-                        //Log.e("Phone",phonenumber);
-                        ((MyApplication) WeightCalendarActivity.this.getApplication()).setPharmaPhone(phonenumber);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        //Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                    }
-                });
         String tel = ((MyApplication) this.getApplication()).getPharmaPhone();
 
         // Handle navigation view item clicks here.
@@ -229,7 +185,7 @@ public class WeightCalendarActivity extends AppCompatActivity
             startActivity(i);
             finish();
         } else if (id == R.id.nav_bloodpressure) {
-            Intent i = new Intent(this, BloodPressureActivity.class);
+            Intent i = new Intent(this, BPCalendarActivity.class);
             startActivity(i);
             finish();
         }
